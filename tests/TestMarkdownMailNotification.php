@@ -2,9 +2,9 @@
 
 namespace Datomatic\LaravelHubspotEmailNotificationChannel\Test;
 
+use Datomatic\LaravelHubspotEmailNotificationChannel\HubspotEmailChannel;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Datomatic\LaravelHubspotEmailNotificationChannel\HubspotEmailChannel;
 
 class TestMarkdownMailNotification extends Notification
 {
@@ -15,7 +15,7 @@ class TestMarkdownMailNotification extends Notification
 
     public function toMail($notifiable)
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Subject')
             ->from('from2@email.com')
             ->cc('cc@email.com', 'cc_name')

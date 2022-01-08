@@ -6,7 +6,8 @@ use Exception;
 
 class BaseException extends Exception
 {
-    final public function __construct(string $error) {
+    final public function __construct(string $error)
+    {
         parent::__construct($error);
     }
 }
