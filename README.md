@@ -3,7 +3,6 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/datomatic/laravel-hubspot-email-notification-channel.svg?style=flat-square)](https://packagist.org/packages/datomatic/laravel-hubspot-email-notification-channel)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Quality Score](https://img.shields.io/scrutinizer/g/datomatic/laravel-hubspot-email-notification-channel.svg?style=flat-square)](https://scrutinizer-ci.com/g/datomatic/laravel-hubspot-email-notification-channel)
-[![Code Coverage](https://img.shields.io/scrutinizer/coverage/g/datomatic/laravel-hubspot-email-notification-channel/master.svg?style=flat-square)](https://scrutinizer-ci.com/g/datomatic/laravel-hubspot-email-notification-channel/?branch=master)
 [![Total Downloads](https://img.shields.io/packagist/dt/datomatic/laravel-hubspot-email-notification-channel.svg?style=flat-square)](https://packagist.org/packages/datomatic/laravel-hubspot-email-notification-channel)
 
 This package makes it easy to log notifications
