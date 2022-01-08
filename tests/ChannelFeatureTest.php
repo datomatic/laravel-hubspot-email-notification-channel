@@ -2,12 +2,12 @@
 
 namespace Datomatic\LaravelHubspotEmailNotificationChannel\Test;
 
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Http;
-use Mockery;
 use Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\CouldNotSendNotification;
 use Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\InvalidConfiguration;
 use Datomatic\LaravelHubspotEmailNotificationChannel\HubspotEmailChannel;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
+use Mockery;
 use Orchestra\Testbench\TestCase;
 
 class ChannelFeatureTest extends TestCase
@@ -48,6 +48,7 @@ class ChannelFeatureTest extends TestCase
                 $path = trim($request->url(), HubspotEmailChannel::HUBSPOT_URL . '/');
                 list($hubspotEmailId, $path) = explode('/associations/contacts/', $path, 2);
                 list($hubspotContactId, $path) = explode('/198?hapik', $path, 2);
+
                 return Http::response('{
     "id": "18339394130",
     "properties": {
@@ -71,6 +72,7 @@ class ChannelFeatureTest extends TestCase
 }', 200, ['Content-Type: application/json']);
             } else {
                 $data = $request->data()['properties'];
+
                 return Http::response('{
     "id": "18339394130",
     "properties": {
@@ -102,7 +104,6 @@ class ChannelFeatureTest extends TestCase
     {
         $this->configSetUp();
         Http::fake(['*' => Http::response('Error', 404)]);
-
     }
 
     /** @test */
@@ -131,7 +132,6 @@ class ChannelFeatureTest extends TestCase
         $channelResponse = $this->channel->send(new TestNotifiableWithoutContactId(), new TestLineMailNotification());
         $this->assertNull($channelResponse);
     }
-
 
     /** @test */
     public function it_can_send_a_notification_with_line_email()

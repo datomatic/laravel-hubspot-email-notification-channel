@@ -2,9 +2,7 @@
 
 namespace Datomatic\LaravelHubspotEmailNotificationChannel;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
-use Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\InvalidConfiguration;
 
 class HubspotEmailServiceProvider extends ServiceProvider
 {
@@ -24,7 +22,6 @@ class HubspotEmailServiceProvider extends ServiceProvider
                 __DIR__ . '/../config/hubspot.php' => config_path('hubspot.php'),
             ]
         );
-
     }
 
     /**
@@ -32,6 +29,5 @@ class HubspotEmailServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
     }
 }
