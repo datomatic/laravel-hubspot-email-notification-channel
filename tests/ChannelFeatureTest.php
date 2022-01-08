@@ -40,7 +40,7 @@ class ChannelFeatureTest extends TestCase
         $this->app['config']->set('hubspot.hubspot_owner_id', '2342345234434');
     }
 
-    private function mockHubspotRequest()
+    private function mockHubspotResponse()
     {
         $this->configSetUp();
         Http::fake(function ($request) {
@@ -126,7 +126,7 @@ class ChannelFeatureTest extends TestCase
     /** @test */
     public function it_not_send_a_notification_to_notifiable_without_contact_id()
     {
-        $this->mockHubspotRequest();
+        $this->mockHubspotResponse();
 
         $channelResponse = $this->channel->send(new TestNotifiableWithoutContactId(), new TestLineMailNotification());
         $this->assertNull($channelResponse);
@@ -136,7 +136,7 @@ class ChannelFeatureTest extends TestCase
     /** @test */
     public function it_can_send_a_notification_with_line_email()
     {
-        $this->mockHubspotRequest();
+        $this->mockHubspotResponse();
 
         $channelResponse = $this->channel->send(new TestNotifiable(), new TestLineMailNotification());
         $this->assertIsArray($channelResponse);
@@ -156,7 +156,7 @@ class ChannelFeatureTest extends TestCase
     /** @test */
     public function it_can_send_a_notification_with_view_email()
     {
-        $this->mockHubspotRequest();
+        $this->mockHubspotResponse();
 
         $channelResponse = $this->channel->send(new TestNotifiable(), new TestViewMailNotification());
 
@@ -169,7 +169,7 @@ class ChannelFeatureTest extends TestCase
     /** @test */
     public function it_can_send_a_notification_with_markdown_email()
     {
-        $this->mockHubspotRequest();
+        $this->mockHubspotResponse();
         $channelResponse = $this->channel->send(new TestNotifiable(), new TestMarkdownMailNotification());
 
         $this->assertIsArray($channelResponse);
