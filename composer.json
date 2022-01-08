@@ -1,0 +1,50 @@
+{
+    "name": "datomatic/laravel-hubspot-email-notification-channel",
+    "description": "Laravel Channel to save email and notifications on Hubspot Email",
+    "homepage": "https://github.com/datomatic/laravel-hubspot-email-notification-channel",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alberto Peripolli",
+            "email": "alberto@datomatic.io",
+            "homepage": "https://www.datomatic.io",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "illuminate/notifications": "~8.0",
+        "illuminate/support": "~8.0",
+        "guzzlehttp/guzzle": "^7.4"
+    },
+    "require-dev": {
+        "mockery/mockery": "^1.4",
+        "orchestra/testbench": "^6.13",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^4.18"
+    },
+    "autoload": {
+        "psr-4": {
+            "Datomatic\\LaravelHubspotEmailNotificationChannel\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Datomatic\\LaravelHubspotEmailNotificationChannel\\Test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:coverage": "phpunit --coverage-text --coverage-clover=coverage.clover"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Datomatic\\LaravelHubspotEmailNotificationChannel\\HubspotEmailServiceProvider"
+            ]
+        }
+    }
+}

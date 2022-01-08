@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1614077822">
+  <project timestamp="1614077822">
+    <file name="/Volumes/Fusion/Repositories/hubspot-engagement/src/Exceptions/CouldNotSendNotification.php">
+      <class name="Datomatic\HubspotEngagement\Exceptions\CouldNotSendNotification" namespace="global">
+        <metrics complexity="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="1" elements="2" coveredelements="2"/>
+      </class>
+      <line num="7" type="method" name="serviceRespondedWithAnError" visibility="public" complexity="1" crap="1" count="1"/>
+      <line num="9" type="stmt" count="1"/>
+      <metrics loc="11" ncloc="11" classes="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="1" elements="2" coveredelements="2"/>
+    </file>
+    <file name="/Volumes/Fusion/Repositories/hubspot-engagement/src/Exceptions/InvalidConfiguration.php">
+      <class name="Datomatic\HubspotEngagement\Exceptions\InvalidConfiguration" namespace="global">
+        <metrics complexity="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="1" elements="2" coveredelements="2"/>
+      </class>
+      <line num="7" type="method" name="configurationNotSet" visibility="public" complexity="1" crap="1" count="1"/>
+      <line num="9" type="stmt" count="1"/>
+      <metrics loc="11" ncloc="11" classes="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="1" elements="2" coveredelements="2"/>
+    </file>
+    <file name="/Volumes/Fusion/Repositories/hubspot-engagement/src/HubspotEngagementChannel.php">
+      <class name="Datomatic\HubspotEngagement\HubspotEngagementChannel" namespace="global">
+        <metrics complexity="11" methods="4" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="33" coveredstatements="33" elements="37" coveredelements="37"/>
+      </class>
+      <line num="23" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="15"/>
+      <line num="25" type="stmt" count="15"/>
+      <line num="26" type="stmt" count="15"/>
+      <line num="36" type="method" name="send" visibility="public" complexity="4" crap="4" count="14"/>
+      <line num="38" type="stmt" count="14"/>
+      <line num="39" type="stmt" count="14"/>
+      <line num="40" type="stmt" count="1"/>
+      <line num="44" type="stmt" count="13"/>
+      <line num="45" type="stmt" count="13"/>
+      <line num="46" type="stmt" count="13"/>
+      <line num="48" type="stmt" count="13"/>
+      <line num="49" type="stmt" count="12"/>
+      <line num="53" type="stmt" count="13"/>
+      <line num="60" type="stmt" count="13"/>
+      <line num="61" type="stmt" count="13"/>
+      <line num="64" type="stmt" count="13"/>
+      <line num="65" type="stmt" count="1"/>
+      <line num="66" type="stmt" count="1"/>
+      <line num="69" type="stmt" count="12"/>
+      <line num="72" type="method" name="parseEmailAddresses" visibility="private" complexity="2" crap="2" count="13"/>
+      <line num="74" type="stmt" count="13"/>
+      <line num="75" type="stmt" count="6"/>
+      <line num="76" type="stmt" count="6"/>
+      <line num="77" type="stmt" count="6"/>
+      <line num="80" type="stmt" count="6"/>
+      <line num="81" type="stmt" count="13"/>
+      <line num="84" type="method" name="getMetadataFromMessage" visibility="private" complexity="4" crap="4" count="13"/>
+      <line num="88" type="stmt" count="13"/>
+      <line num="91" type="stmt" count="13"/>
+      <line num="93" type="stmt" count="13"/>
+      <line num="94" type="stmt" count="13"/>
+      <line num="95" type="stmt" count="13"/>
+      <line num="96" type="stmt" count="13"/>
+      <line num="99" type="stmt" count="13"/>
+      <line num="100" type="stmt" count="13"/>
+      <line num="101" type="stmt" count="10"/>
+      <line num="104" type="stmt" count="13"/>
+      <metrics loc="106" ncloc="91" classes="1" methods="4" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="33" coveredstatements="33" elements="37" coveredelements="37"/>
+    </file>
+    <file name="/Volumes/Fusion/Repositories/hubspot-engagement/src/HubspotEngagementMessage.php">
+      <class name="Datomatic\HubspotEngagement\HubspotEngagementMessage" namespace="global">
+        <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+      </class>
+      <metrics loc="8" ncloc="7" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+    </file>
+    <file name="/Volumes/Fusion/Repositories/hubspot-engagement/src/HubspotEngagementServiceProvider.php">
+      <class name="Datomatic\HubspotEngagement\HubspotEngagementServiceProvider" namespace="global">
+        <metrics complexity="4" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="12" coveredstatements="11" elements="14" coveredelements="12"/>
+      </class>
+      <line num="14" type="method" name="boot" visibility="public" complexity="3" crap="3.01" count="15"/>
+      <line num="16" type="stmt" count="15"/>
+      <line num="17" type="stmt" count="15"/>
+      <line num="20" type="stmt" count="15"/>
+      <line num="21" type="stmt" count="15"/>
+      <line num="22" type="stmt" count="15"/>
+      <line num="23" type="stmt" count="1"/>
+      <line num="25" type="stmt" count="1"/>
+      <line num="26" type="stmt" count="1"/>
+      <line num="29" type="stmt" count="0"/>
+      <line num="30" type="stmt" count="15"/>
+      <line num="31" type="stmt" count="15"/>
+      <line num="36" type="method" name="register" visibility="public" complexity="1" crap="1" count="15"/>
+      <line num="38" type="stmt" count="15"/>
+      <metrics loc="39" ncloc="33" classes="1" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="12" coveredstatements="11" elements="14" coveredelements="12"/>
+    </file>
+    <metrics files="5" loc="175" ncloc="153" classes="4" methods="8" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="47" coveredstatements="46" elements="55" coveredelements="53"/>
+  </project>
+</coverage>
