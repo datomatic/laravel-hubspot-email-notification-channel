@@ -6,6 +6,6 @@ class InvalidConfiguration extends BaseException
 {
     public static function configurationNotSet(): self
     {
-        return new static('In order to send notification via Hubspot Engagement you need to add credentials in the `hubspot` key of `config.services`.');
+        return new static('In order to send notification via Hubspot Email you need to add credentials in the `hubspot` config file.');
     }
 }
