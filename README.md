@@ -62,7 +62,7 @@ Your Notification class must have toMail method.
 The package accepts: MailMessage lines notifications, MailMessage view notifications and Markdown mail notifications.
 
 Data stored on Hubspot:
-- Hubspot Contact Id => The Notifiable Model must have **getHubspotContactId()** function
+- Hubspot Contact Id => The Notifiable Model must have **getHubspotContactId(\Illuminate\Notifications\Notification $notification)** function
 - Send at timestamp
 - subject
 - html body
@@ -105,7 +105,7 @@ namespace App\Models;
 
 class User extends Authenticatable{
     ...
-    public function getHubspotContactId(){
+    public function getHubspotContactId(\Illuminate\Notifications\Notification $notification){
         return $this->hubspot_contact_id;
     }
     ...

@@ -28,7 +28,7 @@ class HubspotEmailChannel
      */
     public function send($notifiable, Notification $notification): ?array
     {
-        $hubspotContactId = $notifiable->getHubspotContactId();
+        $hubspotContactId = $notifiable->getHubspotContactId($notification);
 
         if (empty($hubspotContactId)) {
             return null;
