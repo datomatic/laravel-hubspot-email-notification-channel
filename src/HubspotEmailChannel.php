@@ -63,11 +63,10 @@ class HubspotEmailChannel
             ];
 
         $response = $this->callApi(self::HUBSPOT_URL, 'post', $params);
-        
+
         $hubspotEmail = $response->json();
 
         if ($response->status() == 201 && ! empty($hubspotEmail['id'])) {
-            
             $url = self::HUBSPOT_URL.'/'.$hubspotEmail['id'].'/associations/contacts/'.$hubspotContactId.'/198';
             $newResp = $this->callApi($url, 'put');
 
