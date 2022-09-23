@@ -10,15 +10,21 @@ to [Hubspot Email Engagement V3](https://developers.hubspot.com/docs/api/crm/ema
 
 ## Contents
 
-- [Installation](#installation)
+- [Hubspot Email Notifications Channel for Laravel](#hubspot-email-notifications-channel-for-laravel)
+  - [Contents](#contents)
+  - [Installation](#installation)
     - [Setting up the HubspotEmail service](#setting-up-the-hubspotemail-service)
-- [Usage](#usage)
-- [Changelog](#changelog)
-- [Testing](#testing)
-- [Security](#security)
-- [Contributing](#contributing)
-- [Credits](#credits)
-- [License](#license)
+  - [Usage](#usage)
+      - [Email notification](#email-notification)
+    - [Example](#example)
+      - [Notification example](#notification-example)
+      - [Model example](#model-example)
+  - [Changelog](#changelog)
+  - [Testing](#testing)
+  - [Security](#security)
+  - [Contributing](#contributing)
+  - [Credits](#credits)
+  - [License](#license)
 
 ## Installation
 
@@ -30,11 +36,13 @@ composer require datomatic/laravel-hubspot-email-notification-channel
 
 ### Setting up the HubspotEmail service
 
-Generate API Key from [Hubspot](https://knowledge.hubspot.com/integrations/how-do-i-get-my-hubspot-api-key).
+Generate an [API Key](https://knowledge.hubspot.com/integrations/how-do-i-get-my-hubspot-api-key) or a [Private App](https://developers.hubspot.com/docs/api/private-apps) from Hubspot.
+**Important!** From November 30th 2022 Hubspot will require you to use only private apps. If you have both API Key and Private App configured, to switch using only Private App just remove `HUBSPOT_API_KEY` from your .env file.
 
 Configure your Hubspot API on .env
 ```dotenv
 HUBSPOT_API_KEY=XXXXXXXX
+HUBSPOT_ACCESS_TOKEN=XXXXXXXX
 HUBSPOT_OWNER_ID=XXX //an Hubspot owner id to save as email creator
 ```
 
@@ -45,10 +53,11 @@ php artisan vendor:publish --provider="Datomatic\LaravelHubspotEmailNotification
 This will publish a file hubspot.php in your config directory with the following contents:
 
 ```php
-// config/services.php
+// config/hubspot.php
 
 return [
     'api_key' => env('HUBSPOT_API_KEY'),
+    'access_token' => env('HUBSPOT_API_KEY'),
     'hubspot_owner_id' => env('HUBSPOT_OWNER_ID',null)
 ];
 ```

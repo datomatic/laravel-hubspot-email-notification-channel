@@ -9,6 +9,18 @@ use Illuminate\Support\Facades\Http;
 
 class HubspotEmailChannel
 {
+    // HUBSPOT API CALLS:
+
+    // endpoint: POST /crm/v3/objects/emails;
+    // api ref: https://developers.hubspot.com/docs/api/crm/email
+    // Standard scope(s)	sales-email-read
+    // Granular scope(s)	crm.objects.contacts.write
+
+    // endpoint: PUT /crm/v3/objects/emails/{emailId}/associations/{toObjectType}/{toObjectId}/{associationType};
+    // api ref: https://developers.hubspot.com/docs/api/crm/email
+    // Standard scope(s)	sales-email-read
+    // Granular scope(s)	crm.objects.contacts.write
+
     public const HUBSPOT_URL = 'https://api.hubapi.com/crm/v3/objects/emails';
 
     /**
@@ -39,27 +51,25 @@ class HubspotEmailChannel
         }
 
         $message = $notification->toMail($notifiable);
-        $apiKey = config('hubspot.api_key');
-        if (is_null($apiKey) || is_null(config('hubspot.hubspot_owner_id'))) {
-            throw InvalidConfiguration::configurationNotSet();
-        }
 
-        $response = Http::post(
-            self::HUBSPOT_URL.'?hapikey=' . $apiKey,
-            [
-                "properties" => [
-                    "hs_timestamp" => now()->getPreciseTimestamp(3),
-                    "hubspot_owner_id" => config('hubspot.hubspot_owner_id'),
-                    "hs_email_direction" => "EMAIL",
-                    "hs_email_status" => "SENT",
-                    "hs_email_subject" => $message->subject,
-                    "hs_email_text" => (string) $message->render(), ],
-            ]
-        );
+        $params = [
+            "properties" => [
+                "hs_timestamp" => now()->getPreciseTimestamp(3),
+                "hubspot_owner_id" => config('hubspot.hubspot_owner_id'),
+                "hs_email_direction" => "EMAIL",
+                "hs_email_status" => "SENT",
+                "hs_email_subject" => $message->subject,
+                "hs_email_text" => (string) $message->render(), ],
+            ];
+
+        $response = $this->callApi(self::HUBSPOT_URL, 'post', $params);
+        
         $hubspotEmail = $response->json();
 
         if ($response->status() == 201 && ! empty($hubspotEmail['id'])) {
-            $newResp = Http::put(self::HUBSPOT_URL.'/'. $hubspotEmail['id'] . '/associations/contacts/' . $hubspotContactId . '/198?hapikey=' . $apiKey);
+            
+            $url = self::HUBSPOT_URL.'/'.$hubspotEmail['id'].'/associations/contacts/'.$hubspotContactId.'/198';
+            $newResp = $this->callApi($url, 'put');
 
             if ($newResp->status() != 200) {
                 throw CouldNotSendNotification::serviceRespondedWithAnError($newResp->body());
@@ -70,5 +80,26 @@ class HubspotEmailChannel
         }
 
         return $hubspotEmail;
+    }
+
+    protected function callApi($baseUrl, $method, $params = [])
+    {
+        $apiKey = config('hubspot.api_key');
+        if (is_null(config('hubspot.hubspot_owner_id'))) {
+            throw InvalidConfiguration::configurationNotSet();
+        }
+
+        $url = $baseUrl.'?hapikey='.$apiKey;
+        $http = Http::acceptJson();
+
+        if (is_null($apiKey)) {
+            if (is_null(config('hubspot.access_token'))) {
+                throw InvalidConfiguration::configurationNotSet();
+            }
+            $url = $baseUrl;
+            $http = $http->withToken(config('hubspot.access_token'));
+        }
+
+        return $http->$method($url, $params);
     }
 }
