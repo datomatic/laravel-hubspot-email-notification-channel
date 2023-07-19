@@ -55,7 +55,7 @@ class HubspotEmailChannel
         $params = [
             "properties" => [
                 "hs_timestamp" => now()->getPreciseTimestamp(3),
-                "hubspot_owner_id" => config('hubspot.hubspot_owner_id'),
+                "hubspot_owner_id" => $message->metadata['hubspot_owner_id'] ?? config('hubspot.hubspot_owner_id'),
                 "hs_email_direction" => "EMAIL",
                 "hs_email_status" => "SENT",
                 "hs_email_subject" => $message->subject,
