@@ -122,7 +122,7 @@ class User extends Authenticatable{
 ```
 
 #### Dynamic Contact Owner
-```
+```php
 use Datomatic\LaravelHubspotEmailNotificationChannel\HubspotEmailChannel;
 use Illuminate\Notifications\Notification;
 
