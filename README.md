@@ -121,6 +121,39 @@ class User extends Authenticatable{
 }
 ```
 
+#### Dynamic Contact Owner
+```php
+use Datomatic\LaravelHubspotEmailNotificationChannel\HubspotEmailChannel;
+use Illuminate\Notifications\Notification;
+
+class PersonalMessage extends Notification
+{
+    ...
+
+    public function via($notifiable)
+    {
+        return ['mail', HubspotEmailChannel::class]];
+    }
+
+    public function toMail($notifiable)
+    {
+        $message = (new MailMessage)
+            ->subject(__('messages.personal_subject'))
+            ->from($this->employee->email, $this->employee->name)
+            ->metadata('hubspot_owner_id', $this->employee->hubspot_owner_id);
+
+        return $message->view(
+            'messages.personal', [
+                'title' => __('messages.personal_welcome', ['recipient' => $notifiable->name]),
+                'employee' => $this->employee
+            ]
+        );
+    }
+
+    ...
+}
+```
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
