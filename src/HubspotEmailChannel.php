@@ -75,18 +75,18 @@ class HubspotEmailChannel
             }
             $hubspotEmail['associations'] = $newResp['associations'];
 
-            
+
             $url = 'https://api.hubapi.com/crm/v3/objects/contacts/'.$hubspotContactId.'?associations=company';
             $contactResp = $this->callApi($url, 'get');
-            
+
             if ($contactResp->status() != 200) {
                 throw CouldNotSendNotification::serviceRespondedWithAnError($newResp->body());
             }
-            
+
             if ($hubspotCompanyId = $contactResp['associations']['companies']['results'][0]['id'] ?? null) {
                 $url = self::HUBSPOT_URL.'/'.$hubspotEmail['id'].'/associations/companies/'.$hubspotCompanyId.'/185';
                 $newResp = $this->callApi($url, 'put');
-                
+
                 if ($newResp->status() != 200) {
                     throw CouldNotSendNotification::serviceRespondedWithAnError($newResp->body());
                 }
