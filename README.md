@@ -6,7 +6,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/datomatic/laravel-hubspot-email-notification-channel.svg?style=flat-square)](https://packagist.org/packages/datomatic/laravel-hubspot-email-notification-channel)
 
 This package makes it easy to log notifications
-to [Hubspot Email Engagement V3](https://developers.hubspot.com/docs/api/crm/email) with Laravel 8.x
+to [Hubspot Email Engagement V3](https://developers.hubspot.com/docs/api/crm/email) with Laravel 8.x, 9.x, 10.x
 
 ## Contents
 

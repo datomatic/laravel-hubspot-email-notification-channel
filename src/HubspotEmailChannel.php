@@ -21,7 +21,8 @@ class HubspotEmailChannel
     // Standard scope(s)	sales-email-read
     // Granular scope(s)	crm.objects.contacts.write
 
-    public const HUBSPOT_URL = 'https://api.hubapi.com/crm/v3/objects/emails';
+    public const HUBSPOT_URL_V3 = 'https://api.hubapi.com/crm/v3/objects/';
+    public const HUBSPOT_URL_V4 = 'https://api.hubapi.com/crm/v4/';
 
     /**
      * HubspotEngagementChannel constructor.
@@ -38,16 +39,16 @@ class HubspotEmailChannel
      *
      * @throws \Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\CouldNotSendNotification|InvalidConfiguration
      */
-    public function send($notifiable, Notification $notification): ?array
+    public function send($notifiable, Notification $notification): void
     {
         $hubspotContactId = $notifiable->getHubspotContactId($notification);
 
         if (empty($hubspotContactId)) {
-            return null;
+            return;
         }
 
-        if (! method_exists($notification, 'toMail')) {
-            return null;
+        if (!method_exists($notification, 'toMail')) {
+            return;
         }
 
         $message = $notification->toMail($notifiable);
@@ -59,64 +60,63 @@ class HubspotEmailChannel
                 "hs_email_direction" => "EMAIL",
                 "hs_email_status" => "SENT",
                 "hs_email_subject" => $message->subject,
-                "hs_email_text" => (string) $message->render(), ],
-            ];
+                "hs_email_text" => (string)$message->render(),
+            ],
+        ];
 
-        $response = $this->callApi(self::HUBSPOT_URL, 'post', $params);
+        $hubspotEmail = $this->callApi(self::HUBSPOT_URL_V3 . 'emails', 'post', $params);
 
-        $hubspotEmail = $response->json();
+        if (!empty($hubspotEmail['id'])) {
 
-        if ($response->status() == 201 && ! empty($hubspotEmail['id'])) {
-            $url = self::HUBSPOT_URL.'/'.$hubspotEmail['id'].'/associations/contacts/'.$hubspotContactId.'/198';
-            $newResp = $this->callApi($url, 'put');
+            $this->callApi(
+                self::HUBSPOT_URL_V4 . 'contact/'. $hubspotContactId .'/associations/default/email/' . $hubspotEmail['id'],
+                'put',
+                ["associationTypeId" => 197]
+            );;
 
-            if ($newResp->status() != 200) {
-                throw CouldNotSendNotification::serviceRespondedWithAnError($newResp->body());
-            }
-            $hubspotEmail['associations'] = $newResp['associations'];
-
-
-            $url = 'https://api.hubapi.com/crm/v3/objects/contacts/'.$hubspotContactId.'?associations=company';
-            $contactResp = $this->callApi($url, 'get');
-
-            if ($contactResp->status() != 200) {
-                throw CouldNotSendNotification::serviceRespondedWithAnError($newResp->body());
-            }
+            $contactResp = $this->callApi(
+                self::HUBSPOT_URL_V3 . 'contacts/' . $hubspotContactId,
+                'get',
+                ['associations' => 'company']
+            );
 
             if ($hubspotCompanyId = $contactResp['associations']['companies']['results'][0]['id'] ?? null) {
-                $url = self::HUBSPOT_URL.'/'.$hubspotEmail['id'].'/associations/companies/'.$hubspotCompanyId.'/185';
-                $newResp = $this->callApi($url, 'put');
-
-                if ($newResp->status() != 200) {
-                    throw CouldNotSendNotification::serviceRespondedWithAnError($newResp->body());
-                }
-                $hubspotEmail['associations'] = array_merge($hubspotEmail['associations'], $newResp['associations']);
+                $this->callApi(
+                    self::HUBSPOT_URL_V4 . 'company/'. $hubspotCompanyId .'/associations/default/email/' . $hubspotEmail['id'],
+                    'put',
+                    ["associationTypeId" => 185]
+                );
             }
-        } else {
-            throw CouldNotSendNotification::serviceRespondedWithAnError($response->body());
         }
 
-        return $hubspotEmail;
     }
 
-    protected function callApi($baseUrl, $method, $params = [])
+    protected function callApi(string $baseUrl, string $method, array $params = []) :array
     {
-        $apiKey = config('hubspot.api_key');
         if (is_null(config('hubspot.hubspot_owner_id'))) {
             throw InvalidConfiguration::configurationNotSet();
         }
 
-        $url = $baseUrl.'?hapikey='.$apiKey;
+        $apiKey = config('hubspot.api_key');
+        if($apiKey){
+            $params['hapikey'] = $apiKey;
+        }
+
         $http = Http::acceptJson();
 
         if (is_null($apiKey)) {
             if (is_null(config('hubspot.access_token'))) {
                 throw InvalidConfiguration::configurationNotSet();
             }
-            $url = $baseUrl;
             $http = $http->withToken(config('hubspot.access_token'));
         }
 
-        return $http->$method($url, $params);
+        $response = $http->$method($baseUrl, $params);
+
+        if ($response->failed()) {
+            throw CouldNotSendNotification::serviceRespondedWithAnError($response->body());
+        }
+
+        return $response->json();
     }
 }

@@ -45,7 +45,7 @@ class ChannelFeatureTest extends TestCase
         $this->configSetUp();
         Http::fake(function ($request) {
             if (strpos($request->url(), 'associations/contacts') !== false) {
-                $path = trim($request->url(), HubspotEmailChannel::HUBSPOT_URL . '/');
+                $path = trim($request->url(), HubspotEmailChannel::HUBSPOT_URL_V3 . '/');
                 list($hubspotEmailId, $path) = explode('/associations/contacts/', $path, 2);
                 list($hubspotContactId, $path) = explode('/198?hapik', $path, 2);
 
