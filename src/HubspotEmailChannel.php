@@ -16,13 +16,11 @@ class HubspotEmailChannel
     // Standard scope(s)	sales-email-read
     // Granular scope(s)	crm.objects.contacts.write
 
-    // endpoint: PUT /crm/v3/objects/emails/{emailId}/associations/{toObjectType}/{toObjectId}/{associationType};
-    // api ref: https://developers.hubspot.com/docs/api/crm/email
-    // Standard scope(s)	sales-email-read
-    // Granular scope(s)	crm.objects.contacts.write
+    // endpoint: PUT /crm/v4/objects/{fromObjectType}/{fromObjectId}/associations/default/{toObjectType}/{toObjectId};
+    // api ref: https://developers.hubspot.com/docs/api/crm/associations
 
     public const HUBSPOT_URL_V3 = 'https://api.hubapi.com/crm/v3/objects/';
-    public const HUBSPOT_URL_V4 = 'https://api.hubapi.com/crm/v4/';
+    public const HUBSPOT_URL_V4 = 'https://api.hubapi.com/crm/v4/objects/';
 
     /**
      * HubspotEngagementChannel constructor.
@@ -119,7 +117,7 @@ class HubspotEmailChannel
         $response = $http->$method($baseUrl, $params);
 
         if ($response->failed()) {
-            throw CouldNotSendNotification::serviceRespondedWithAnError($response->body());
+            throw CouldNotSendNotification::serviceRespondedWithAnError($baseUrl.' '.$response->status().' '.$response->body());
         }
 
         return $response->json();
