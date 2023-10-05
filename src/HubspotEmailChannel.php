@@ -39,23 +39,23 @@ class HubspotEmailChannel
      *
      * @throws \Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\CouldNotSendNotification|InvalidConfiguration
      */
-    public function send($notifiable, Notification $notification): void
+    public function send($notifiable, Notification $notification): ?array
     {
         $hubspotContactId = $notifiable->getHubspotContactId($notification);
 
         if (empty($hubspotContactId)) {
-            return;
+            return null;
         }
 
         if (!method_exists($notification, 'toMail')) {
-            return;
+            return null;
         }
 
         $message = $notification->toMail($notifiable);
 
         $params = [
             "properties" => [
-                "hs_timestamp" => now()->getPreciseTimestamp(3),
+                "hs_timestamp" => round(microtime(true) * 1000),
                 "hubspot_owner_id" => $message->metadata['hubspot_owner_id'] ?? config('hubspot.hubspot_owner_id'),
                 "hs_email_direction" => "EMAIL",
                 "hs_email_status" => "SENT",
@@ -72,23 +72,27 @@ class HubspotEmailChannel
                 self::HUBSPOT_URL_V4 . 'contact/'. $hubspotContactId .'/associations/default/email/' . $hubspotEmail['id'],
                 'put',
                 ["associationTypeId" => 197]
-            );;
-
-            $contactResp = $this->callApi(
-                self::HUBSPOT_URL_V3 . 'contacts/' . $hubspotContactId,
-                'get',
-                ['associations' => 'company']
             );
 
-            if ($hubspotCompanyId = $contactResp['associations']['companies']['results'][0]['id'] ?? null) {
-                $this->callApi(
-                    self::HUBSPOT_URL_V4 . 'company/'. $hubspotCompanyId .'/associations/default/email/' . $hubspotEmail['id'],
-                    'put',
-                    ["associationTypeId" => 185]
+            if(config('hubspot.company_email_associations')) {
+                $contactResp = $this->callApi(
+                    self::HUBSPOT_URL_V3 . 'contacts/' . $hubspotContactId,
+                    'get',
+                    ['properties' => 'associatedcompanyid']
                 );
+
+                $hubspotCompanyId = $contactResp['properties']['associatedcompanyid'] ?? null;
+
+                if ($hubspotCompanyId) {
+                    $this->callApi(
+                        self::HUBSPOT_URL_V4 . 'company/' . $hubspotCompanyId . '/associations/default/email/' . $hubspotEmail['id'],
+                        'put',
+                        ["associationTypeId" => 185]
+                    );
+                }
             }
         }
-
+        return $hubspotEmail;
     }
 
     protected function callApi(string $baseUrl, string $method, array $params = []) :array

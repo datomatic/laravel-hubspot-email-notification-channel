@@ -36,12 +36,14 @@ composer require datomatic/laravel-hubspot-email-notification-channel
 
 ### Setting up the HubspotEmail service
 
-Generate an [API Key](https://knowledge.hubspot.com/integrations/how-do-i-get-my-hubspot-api-key) or a [Private App](https://developers.hubspot.com/docs/api/private-apps) from Hubspot.
+Generate an [API Key](https://knowledge.hubspot.com/integrations/how-do-i-get-my-hubspot-api-key)
+or a [Private App](https://developers.hubspot.com/docs/api/private-apps) from Hubspot.
 **Important!** From November 30th 2022 Hubspot will require you to use only private apps. If you have both API Key and Private App configured, to switch using only Private App just remove `HUBSPOT_API_KEY` from your .env file.
 
 Configure your Hubspot API on .env
 ```dotenv
-HUBSPOT_API_KEY=XXXXXXXX
+HUBSPOT_API_KEY=XXXXXXXX 
+# or
 HUBSPOT_ACCESS_TOKEN=XXXXXXXX
 HUBSPOT_OWNER_ID=XXX //an Hubspot owner id to save as email creator
 ```

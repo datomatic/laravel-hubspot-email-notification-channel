@@ -44,33 +44,46 @@ class ChannelFeatureTest extends TestCase
     {
         $this->configSetUp();
         Http::fake(function ($request) {
-            if (strpos($request->url(), 'associations/contacts') !== false) {
-                $path = trim($request->url(), HubspotEmailChannel::HUBSPOT_URL_V3 . '/');
-                list($hubspotEmailId, $path) = explode('/associations/contacts/', $path, 2);
-                list($hubspotContactId, $path) = explode('/198?hapik', $path, 2);
+            if (strpos($request->url(), 'associations/default/email') !== false
+                && strpos($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4) !== false
+            ) {
+                $path = trim($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4 . 'contact/');
+                list($hubspotContactId,$hubspotEmailId) = explode('/associations/default/email/', $path, 2);
 
-                return Http::response('{
-    "id": "18339394130",
-    "properties": {
-        "hs_createdate": "' . now()->getPreciseTimestamp(3) . '",
-        "hs_lastmodifieddate": "' . now()->getPreciseTimestamp(3) . '",
-        "hs_object_id": "18339394130"
-    },
-    "createdAt": "' . now()->getPreciseTimestamp(3) . '",
-    "updatedAt": "' . now()->getPreciseTimestamp(3) . '",
-    "archived": false,
-    "associations": {
-        "contacts": {
-            "results": [
-                {
-                    "id": "' . $hubspotContactId . '",
-                    "type": "email_to_contact"
-                }
-            ]
-        }
-    }
-}', 200, ['Content-Type: application/json']);
-            } else {
+                return Http::response(json_encode([
+                    "status" => "COMPLETE",
+                    "results" => [
+                        [
+                            "from" => [
+                                "id" => $hubspotEmailId,
+                            ],
+                            "to" => [
+                                "id" => $hubspotContactId,
+                            ],
+                            "associationSpec" => [
+                                "associationCategory" => "HUBSPOT_DEFINED",
+                                "associationTypeId" => 198,
+                            ],
+                        ],
+                        [
+                            "from" => [
+                                "id" => $hubspotContactId,
+                            ],
+                            "to" => [
+                                "id" => $hubspotEmailId,
+                            ],
+                            "associationSpec" => [
+                                "associationCategory" => "HUBSPOT_DEFINED",
+                                "associationTypeId" => 197,
+                            ],
+                        ],
+                    ],
+                    "startedAt" => round(microtime(true) * 1000),
+                    "completedAt" => round(microtime(true) * 1000),
+                ]), 200, ['Content-Type: application/json']);
+            } elseif (strpos($request->url(), 'emails') !== false
+                && strpos($request->url(), HubspotEmailChannel::HUBSPOT_URL_V3) !== false
+            ) {
                 $data = $request->data()['properties'];
 
                 return Http::response('{
@@ -80,22 +93,24 @@ class ChannelFeatureTest extends TestCase
         "hs_body_preview": "Thanks for your interest let\'s find a time to connect",
         "hs_body_preview_html": "Thanks for your interest let\'s find a time to connect",
         "hs_body_preview_is_truncated": "false",
-        "hs_createdate": "' . now()->getPreciseTimestamp(3) . '",
+        "hs_createdate": "' . round(microtime(true) * 1000) . '",
         "hs_email_attached_video_opened": "false",
         "hs_email_attached_video_watched": "false",
         "hs_email_direction": "EMAIL",
         "hs_email_status": "SENT",
         "hs_email_subject": "' . str_replace('"', '\"', $data['hs_email_subject']) . '",
         "hs_email_text": "' . preg_replace("/\r|\n/", "", str_replace('"', '\"', $data['hs_email_text'])) . '",
-        "hs_lastmodifieddate": "' . now()->getPreciseTimestamp(3) . '",
+        "hs_lastmodifieddate": "' . round(microtime(true) * 1000) . '",
         "hs_object_id": "18339394130",
         "hs_timestamp": "' . $data['hs_timestamp'] . '",
-        "hubspot_owner_assigneddate": "' . now()->getPreciseTimestamp(3) . '",
+        "hubspot_owner_assigneddate": "' . round(microtime(true) * 1000) . '",
         "hubspot_owner_id": "' . $data['hubspot_owner_id'] . '"
     },
-    "createdAt": "' . now()->getPreciseTimestamp(3) . '",
-    "updatedAt": "' . now()->getPreciseTimestamp(3) . '",
+    "createdAt": "' . round(microtime(true) * 1000) . '",
+    "updatedAt": "' . round(microtime(true) * 1000) . '",
     "archived": false}', 201, ['Content-Type: application/json']);
+            }else{
+                return Http::response('{}',200, ['Content-Type: application/json']);
             }
         });
     }
@@ -139,10 +154,10 @@ class ChannelFeatureTest extends TestCase
         $this->mockHubspotResponse();
 
         $channelResponse = $this->channel->send(new TestNotifiable(), new TestLineMailNotification());
+
         $this->assertIsArray($channelResponse);
         $this->assertEquals($channelResponse['archived'], false);
         $this->assertEquals($channelResponse['properties']['hubspot_owner_id'], config('hubspot.hubspot_owner_id'));
-        $this->assertEquals($channelResponse['associations']['contacts']['results'][0]['id'], 987654321);
         $this->assertArrayHasKey('id', $channelResponse);
         $this->assertArrayHasKey('hs_email_status', $channelResponse['properties']);
         $htmlString = $channelResponse['properties']['hs_email_text'];
