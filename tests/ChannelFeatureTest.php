@@ -48,7 +48,7 @@ class ChannelFeatureTest extends TestCase
                 && strpos($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4) !== false
             ) {
                 $path = trim($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4 . 'contact/');
-                list($hubspotContactId,$hubspotEmailId) = explode('/associations/default/email/', $path, 2);
+                list($hubspotContactId, $hubspotEmailId) = explode('/associations/default/email/', $path, 2);
 
                 return Http::response(json_encode([
                     "status" => "COMPLETE",
@@ -109,8 +109,8 @@ class ChannelFeatureTest extends TestCase
     "createdAt": "' . round(microtime(true) * 1000) . '",
     "updatedAt": "' . round(microtime(true) * 1000) . '",
     "archived": false}', 201, ['Content-Type: application/json']);
-            }else{
-                return Http::response('{}',200, ['Content-Type: application/json']);
+            } else {
+                return Http::response('{}', 200, ['Content-Type: application/json']);
             }
         });
     }

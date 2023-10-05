@@ -47,7 +47,7 @@ class HubspotEmailChannel
             return null;
         }
 
-        if (!method_exists($notification, 'toMail')) {
+        if (! method_exists($notification, 'toMail')) {
             return null;
         }
 
@@ -66,7 +66,7 @@ class HubspotEmailChannel
 
         $hubspotEmail = $this->callApi(self::HUBSPOT_URL_V3 . 'emails', 'post', $params);
 
-        if (!empty($hubspotEmail['id'])) {
+        if (! empty($hubspotEmail['id'])) {
 
             $this->callApi(
                 self::HUBSPOT_URL_V4 . 'contact/'. $hubspotContactId .'/associations/default/email/' . $hubspotEmail['id'],
@@ -92,17 +92,18 @@ class HubspotEmailChannel
                 }
             }
         }
+
         return $hubspotEmail;
     }
 
-    protected function callApi(string $baseUrl, string $method, array $params = []) :array
+    protected function callApi(string $baseUrl, string $method, array $params = []): array
     {
         if (is_null(config('hubspot.hubspot_owner_id'))) {
             throw InvalidConfiguration::configurationNotSet();
         }
 
         $apiKey = config('hubspot.api_key');
-        if($apiKey){
+        if($apiKey) {
             $params['hapikey'] = $apiKey;
         }
 
