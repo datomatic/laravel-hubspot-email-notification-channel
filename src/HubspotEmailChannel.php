@@ -105,7 +105,7 @@ class HubspotEmailChannel
             $params['hapikey'] = $apiKey;
         }
 
-        $http = Http::acceptJson();
+        $http = Http::acceptJson()->retry(3, 11 * 1000);
 
         if (is_null($apiKey)) {
             if (is_null(config('hubspot.access_token'))) {
