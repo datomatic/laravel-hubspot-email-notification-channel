@@ -12,14 +12,14 @@ class HubspotEmailServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningUnitTests()) {
-            $this->loadViewsFrom(__DIR__ . '/../resources/views', 'hubspot-engagement');
+            $this->loadViewsFrom(__DIR__.'/../resources/views', 'hubspot-engagement');
         }
 
-        $this->mergeConfigFrom(__DIR__ . '/../config/hubspot.php', 'hubspot');
+        $this->mergeConfigFrom(__DIR__.'/../config/hubspot.php', 'hubspot');
 
         $this->publishes(
             [
-                __DIR__ . '/../config/hubspot.php' => config_path('hubspot.php'),
+                __DIR__.'/../config/hubspot.php' => config_path('hubspot.php'),
             ]
         );
     }
@@ -27,7 +27,5 @@ class HubspotEmailServiceProvider extends ServiceProvider
     /**
      * Register the application services.
      */
-    public function register()
-    {
-    }
+    public function register() {}
 }

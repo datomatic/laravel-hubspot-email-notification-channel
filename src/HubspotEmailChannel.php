@@ -20,20 +20,18 @@ class HubspotEmailChannel
     // api ref: https://developers.hubspot.com/docs/api/crm/associations
 
     public const HUBSPOT_URL_V3 = 'https://api.hubapi.com/crm/v3/objects/';
+
     public const HUBSPOT_URL_V4 = 'https://api.hubapi.com/crm/v4/objects/';
 
     /**
      * HubspotEngagementChannel constructor.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Send the given notification.
      *
-     * @param mixed $notifiable
-     * @param \Illuminate\Notifications\Notification $notification
+     * @param  mixed  $notifiable
      *
      * @throws \Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\CouldNotSendNotification|InvalidConfiguration
      */
@@ -51,30 +49,33 @@ class HubspotEmailChannel
 
         $message = $notification->toMail($notifiable);
 
+        $text = method_exists($notification, 'toTextMail')
+            ? $notification->toTextMail($notifiable) : (string) $message->render();
+
         $params = [
-            "properties" => [
-                "hs_timestamp" => round(microtime(true) * 1000),
-                "hubspot_owner_id" => $message->metadata['hubspot_owner_id'] ?? config('hubspot.hubspot_owner_id'),
-                "hs_email_direction" => "EMAIL",
-                "hs_email_status" => "SENT",
-                "hs_email_subject" => $message->subject,
-                "hs_email_text" => (string)$message->render(),
+            'properties' => [
+                'hs_timestamp' => round(microtime(true) * 1000),
+                'hubspot_owner_id' => $message->metadata['hubspot_owner_id'] ?? config('hubspot.hubspot_owner_id'),
+                'hs_email_direction' => 'EMAIL',
+                'hs_email_status' => 'SENT',
+                'hs_email_subject' => $message->subject,
+                'hs_email_text' => $text,
             ],
         ];
 
-        $hubspotEmail = $this->callApi(self::HUBSPOT_URL_V3 . 'emails', 'post', $params);
+        $hubspotEmail = $this->callApi(self::HUBSPOT_URL_V3.'emails', 'post', $params);
 
         if (! empty($hubspotEmail['id'])) {
 
             $this->callApi(
-                self::HUBSPOT_URL_V4 . 'contact/'. $hubspotContactId .'/associations/default/email/' . $hubspotEmail['id'],
+                self::HUBSPOT_URL_V4.'contact/'.$hubspotContactId.'/associations/default/email/'.$hubspotEmail['id'],
                 'put',
-                ["associationTypeId" => 197]
+                ['associationTypeId' => 197]
             );
 
-            if(config('hubspot.company_email_associations')) {
+            if (config('hubspot.company_email_associations')) {
                 $contactResp = $this->callApi(
-                    self::HUBSPOT_URL_V3 . 'contacts/' . $hubspotContactId,
+                    self::HUBSPOT_URL_V3.'contacts/'.$hubspotContactId,
                     'get',
                     ['properties' => 'associatedcompanyid']
                 );
@@ -83,9 +84,9 @@ class HubspotEmailChannel
 
                 if ($hubspotCompanyId) {
                     $this->callApi(
-                        self::HUBSPOT_URL_V4 . 'company/' . $hubspotCompanyId . '/associations/default/email/' . $hubspotEmail['id'],
+                        self::HUBSPOT_URL_V4.'company/'.$hubspotCompanyId.'/associations/default/email/'.$hubspotEmail['id'],
                         'put',
-                        ["associationTypeId" => 185]
+                        ['associationTypeId' => 185]
                     );
                 }
             }
@@ -101,7 +102,7 @@ class HubspotEmailChannel
         }
 
         $apiKey = config('hubspot.api_key');
-        if($apiKey) {
+        if ($apiKey) {
             $params['hapikey'] = $apiKey;
         }
 

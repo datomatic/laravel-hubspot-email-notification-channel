@@ -20,13 +20,13 @@ class ChannelFeatureTest extends TestCase
         return ['Datomatic\LaravelHubspotEmailNotificationChannel\HubspotEmailServiceProvider'];
     }
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
-        $this->channel = new HubspotEmailChannel();
+        $this->channel = new HubspotEmailChannel;
     }
 
-    public function tearDown(): void
+    protected function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();
@@ -47,39 +47,39 @@ class ChannelFeatureTest extends TestCase
             if (strpos($request->url(), 'associations/default/email') !== false
                 && strpos($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4) !== false
             ) {
-                $path = trim($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4 . 'contact/');
-                list($hubspotContactId, $hubspotEmailId) = explode('/associations/default/email/', $path, 2);
+                $path = trim($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4.'contact/');
+                [$hubspotContactId, $hubspotEmailId] = explode('/associations/default/email/', $path, 2);
 
                 return Http::response(json_encode([
-                    "status" => "COMPLETE",
-                    "results" => [
+                    'status' => 'COMPLETE',
+                    'results' => [
                         [
-                            "from" => [
-                                "id" => $hubspotEmailId,
+                            'from' => [
+                                'id' => $hubspotEmailId,
                             ],
-                            "to" => [
-                                "id" => $hubspotContactId,
+                            'to' => [
+                                'id' => $hubspotContactId,
                             ],
-                            "associationSpec" => [
-                                "associationCategory" => "HUBSPOT_DEFINED",
-                                "associationTypeId" => 198,
+                            'associationSpec' => [
+                                'associationCategory' => 'HUBSPOT_DEFINED',
+                                'associationTypeId' => 198,
                             ],
                         ],
                         [
-                            "from" => [
-                                "id" => $hubspotContactId,
+                            'from' => [
+                                'id' => $hubspotContactId,
                             ],
-                            "to" => [
-                                "id" => $hubspotEmailId,
+                            'to' => [
+                                'id' => $hubspotEmailId,
                             ],
-                            "associationSpec" => [
-                                "associationCategory" => "HUBSPOT_DEFINED",
-                                "associationTypeId" => 197,
+                            'associationSpec' => [
+                                'associationCategory' => 'HUBSPOT_DEFINED',
+                                'associationTypeId' => 197,
                             ],
                         ],
                     ],
-                    "startedAt" => round(microtime(true) * 1000),
-                    "completedAt" => round(microtime(true) * 1000),
+                    'startedAt' => round(microtime(true) * 1000),
+                    'completedAt' => round(microtime(true) * 1000),
                 ]), 200, ['Content-Type: application/json']);
             } elseif (strpos($request->url(), 'emails') !== false
                 && strpos($request->url(), HubspotEmailChannel::HUBSPOT_URL_V3) !== false
@@ -89,25 +89,25 @@ class ChannelFeatureTest extends TestCase
                 return Http::response('{
     "id": "18339394130",
     "properties": {
-        "hs_all_owner_ids": "' . $data['hubspot_owner_id'] . '",
+        "hs_all_owner_ids": "'.$data['hubspot_owner_id'].'",
         "hs_body_preview": "Thanks for your interest let\'s find a time to connect",
         "hs_body_preview_html": "Thanks for your interest let\'s find a time to connect",
         "hs_body_preview_is_truncated": "false",
-        "hs_createdate": "' . round(microtime(true) * 1000) . '",
+        "hs_createdate": "'.round(microtime(true) * 1000).'",
         "hs_email_attached_video_opened": "false",
         "hs_email_attached_video_watched": "false",
         "hs_email_direction": "EMAIL",
         "hs_email_status": "SENT",
-        "hs_email_subject": "' . str_replace('"', '\"', $data['hs_email_subject']) . '",
-        "hs_email_text": "' . preg_replace("/\r|\n/", "", str_replace('"', '\"', $data['hs_email_text'])) . '",
-        "hs_lastmodifieddate": "' . round(microtime(true) * 1000) . '",
+        "hs_email_subject": "'.str_replace('"', '\"', $data['hs_email_subject']).'",
+        "hs_email_text": "'.preg_replace("/\r|\n/", '', str_replace('"', '\"', $data['hs_email_text'])).'",
+        "hs_lastmodifieddate": "'.round(microtime(true) * 1000).'",
         "hs_object_id": "18339394130",
-        "hs_timestamp": "' . $data['hs_timestamp'] . '",
-        "hubspot_owner_assigneddate": "' . round(microtime(true) * 1000) . '",
-        "hubspot_owner_id": "' . $data['hubspot_owner_id'] . '"
+        "hs_timestamp": "'.$data['hs_timestamp'].'",
+        "hubspot_owner_assigneddate": "'.round(microtime(true) * 1000).'",
+        "hubspot_owner_id": "'.$data['hubspot_owner_id'].'"
     },
-    "createdAt": "' . round(microtime(true) * 1000) . '",
-    "updatedAt": "' . round(microtime(true) * 1000) . '",
+    "createdAt": "'.round(microtime(true) * 1000).'",
+    "updatedAt": "'.round(microtime(true) * 1000).'",
     "archived": false}', 201, ['Content-Type: application/json']);
             } else {
                 return Http::response('{}', 200, ['Content-Type: application/json']);
@@ -127,7 +127,7 @@ class ChannelFeatureTest extends TestCase
         Config::set('hubspot', null);
         $this->expectException(InvalidConfiguration::class);
 
-        (new TestNotifiable())->notify(new TestLineMailNotification());
+        (new TestNotifiable)->notify(new TestLineMailNotification);
     }
 
     /** @test */
@@ -136,7 +136,7 @@ class ChannelFeatureTest extends TestCase
         $this->mockHubspotErrorRequest();
         $this->expectException(CouldNotSendNotification::class);
 
-        $this->channel->send(new TestNotifiable(), new TestLineMailNotification());
+        $this->channel->send(new TestNotifiable, new TestLineMailNotification);
     }
 
     /** @test */
@@ -144,7 +144,7 @@ class ChannelFeatureTest extends TestCase
     {
         $this->mockHubspotResponse();
 
-        $channelResponse = $this->channel->send(new TestNotifiableWithoutContactId(), new TestLineMailNotification());
+        $channelResponse = $this->channel->send(new TestNotifiableWithoutContactId, new TestLineMailNotification);
         $this->assertNull($channelResponse);
     }
 
@@ -153,7 +153,7 @@ class ChannelFeatureTest extends TestCase
     {
         $this->mockHubspotResponse();
 
-        $channelResponse = $this->channel->send(new TestNotifiable(), new TestLineMailNotification());
+        $channelResponse = $this->channel->send(new TestNotifiable, new TestLineMailNotification);
 
         $this->assertIsArray($channelResponse);
         $this->assertEquals($channelResponse['archived'], false);
@@ -173,7 +173,7 @@ class ChannelFeatureTest extends TestCase
     {
         $this->mockHubspotResponse();
 
-        $channelResponse = $this->channel->send(new TestNotifiable(), new TestViewMailNotification());
+        $channelResponse = $this->channel->send(new TestNotifiable, new TestViewMailNotification);
 
         $this->assertIsArray($channelResponse);
         $this->assertIsString($channelResponse['properties']['hs_email_text']);
@@ -185,7 +185,7 @@ class ChannelFeatureTest extends TestCase
     public function it_can_send_a_notification_with_markdown_email()
     {
         $this->mockHubspotResponse();
-        $channelResponse = $this->channel->send(new TestNotifiable(), new TestMarkdownMailNotification());
+        $channelResponse = $this->channel->send(new TestNotifiable, new TestMarkdownMailNotification);
 
         $this->assertIsArray($channelResponse);
         $htmlString = $channelResponse['properties']['hs_email_text'];
