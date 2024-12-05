@@ -15,7 +15,7 @@ class TestMarkdownMailNotification extends Notification
 
     public function toMail($notifiable)
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Subject')
             ->from('from2@email.com')
             ->cc('cc@email.com', 'cc_name')

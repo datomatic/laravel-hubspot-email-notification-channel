@@ -26,7 +26,9 @@ class HubspotEmailChannel
     /**
      * HubspotEngagementChannel constructor.
      */
-    public function __construct() {}
+    public function __construct()
+    {
+    }
 
     /**
      * Send the given notification.
