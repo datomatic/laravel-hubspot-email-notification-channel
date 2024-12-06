@@ -18,10 +18,11 @@
         "guzzlehttp/guzzle": "^7.4"
     },
     "require-dev": {
+        "larastan/larastan": "^1.0|^2.0",
         "laravel/pint": "^1.18",
         "mockery/mockery": "^1.4",
-        "orchestra/testbench": "^6.13",
-        "phpunit/phpunit": "^9.5"
+        "orchestra/testbench": "^6.13|^7.0|^8.0|^9.0",
+        "phpunit/phpunit": "^9.0|^10.0|^11.0"
     },
     "autoload": {
         "psr-4": {
@@ -36,7 +37,8 @@
     "scripts": {
         "test": "phpunit",
         "test:coverage": "phpunit --coverage-text --coverage-clover=coverage.clover",
-        "format": "vendor/bin/pint"
+        "format": "vendor/bin/pint",
+        "analyse": "vendor/bin/phpstan analyse"
     },
     "config": {
         "sort-packages": true

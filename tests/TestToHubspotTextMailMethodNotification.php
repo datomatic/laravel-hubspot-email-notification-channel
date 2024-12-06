@@ -6,9 +6,9 @@ use Datomatic\LaravelHubspotEmailNotificationChannel\HubspotEmailChannel;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TestMarkdownMailNotification extends Notification
+class TestToHubspotTextMailMethodNotification extends Notification
 {
-    public function via(TestNotifiable $notifiable)
+    public function via($notifiable)
     {
         return [HubspotEmailChannel::class];
     }
@@ -17,11 +17,14 @@ class TestMarkdownMailNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Subject')
-            ->from('from2@email.com')
+            ->from('from3@email.com', 'From3')
+            ->view('hubspot-engagement::email_test_view', [])
             ->cc('cc@email.com', 'cc_name')
-            ->cc('cc2@email.com')
-            ->bcc('bcc@email.com')
-            ->bcc('bcc2@email.com', 'bcc2_name')
-            ->markdown('hubspot-engagement::email_test_markdown', []);
+            ->bcc('bcc@email.com', 'bcc_name');
+    }
+
+    public function toHubspotTextMail(TestNotifiable $notifiable)
+    {
+        return 'test message';
     }
 }

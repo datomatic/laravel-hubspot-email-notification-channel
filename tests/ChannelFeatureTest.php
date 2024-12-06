@@ -23,7 +23,7 @@ class ChannelFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->channel = new HubspotEmailChannel();
+        $this->channel = new HubspotEmailChannel;
     }
 
     protected function tearDown(): void
@@ -127,7 +127,7 @@ class ChannelFeatureTest extends TestCase
         Config::set('hubspot', null);
         $this->expectException(InvalidConfiguration::class);
 
-        (new TestNotifiable())->notify(new TestLineMailNotification());
+        (new TestNotifiable)->notify(new TestLineMailNotification);
     }
 
     /** @test */
@@ -136,7 +136,7 @@ class ChannelFeatureTest extends TestCase
         $this->mockHubspotErrorRequest();
         $this->expectException(CouldNotSendNotification::class);
 
-        $this->channel->send(new TestNotifiable(), new TestLineMailNotification());
+        $this->channel->send(new TestNotifiable, new TestLineMailNotification);
     }
 
     /** @test */
@@ -144,7 +144,7 @@ class ChannelFeatureTest extends TestCase
     {
         $this->mockHubspotResponse();
 
-        $channelResponse = $this->channel->send(new TestNotifiableWithoutContactId(), new TestLineMailNotification());
+        $channelResponse = $this->channel->send(new TestNotifiableWithoutContactId, new TestLineMailNotification);
         $this->assertNull($channelResponse);
     }
 
@@ -153,7 +153,7 @@ class ChannelFeatureTest extends TestCase
     {
         $this->mockHubspotResponse();
 
-        $channelResponse = $this->channel->send(new TestNotifiable(), new TestLineMailNotification());
+        $channelResponse = $this->channel->send(new TestNotifiable, new TestLineMailNotification);
 
         $this->assertIsArray($channelResponse);
         $this->assertEquals($channelResponse['archived'], false);
@@ -173,7 +173,7 @@ class ChannelFeatureTest extends TestCase
     {
         $this->mockHubspotResponse();
 
-        $channelResponse = $this->channel->send(new TestNotifiable(), new TestViewMailNotification());
+        $channelResponse = $this->channel->send(new TestNotifiable, new TestViewMailNotification);
 
         $this->assertIsArray($channelResponse);
         $this->assertIsString($channelResponse['properties']['hs_email_text']);
@@ -185,11 +185,22 @@ class ChannelFeatureTest extends TestCase
     public function it_can_send_a_notification_with_markdown_email()
     {
         $this->mockHubspotResponse();
-        $channelResponse = $this->channel->send(new TestNotifiable(), new TestMarkdownMailNotification());
+        $channelResponse = $this->channel->send(new TestNotifiable, new TestMarkdownMailNotification);
 
         $this->assertIsArray($channelResponse);
         $htmlString = $channelResponse['properties']['hs_email_text'];
         $this->assertStringContainsString('Markdown Title Content', $htmlString);
         $this->assertStringContainsString('Markdown body content', $htmlString);
+    }
+
+    /** @test */
+    public function it_can_send_a_notification_with_to_hubspot_text_mail_method()
+    {
+        $this->mockHubspotResponse();
+        $channelResponse = $this->channel->send(new TestNotifiable, new TestToHubspotTextMailMethodNotification);
+
+        $this->assertIsArray($channelResponse);
+        $htmlString = $channelResponse['properties']['hs_email_text'];
+        $this->assertStringContainsString('test message', $htmlString);
     }
 }

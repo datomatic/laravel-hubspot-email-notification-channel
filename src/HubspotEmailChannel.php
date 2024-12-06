@@ -26,9 +26,7 @@ class HubspotEmailChannel
     /**
      * HubspotEngagementChannel constructor.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Send the given notification.
@@ -51,8 +49,8 @@ class HubspotEmailChannel
 
         $message = $notification->toMail($notifiable);
 
-        $text = method_exists($notification, 'toTextMail')
-            ? $notification->toTextMail($notifiable) : (string) $message->render();
+        $text = method_exists($notification, 'toHubspotTextMail')
+            ? $notification->toHubspotTextMail($notifiable) : (string) $message->render();
 
         $params = [
             'properties' => [
@@ -117,7 +115,11 @@ class HubspotEmailChannel
             $http = $http->withToken(config('hubspot.access_token'));
         }
 
-        $response = $http->$method($baseUrl, $params);
+        try {
+            $response = $http->$method($baseUrl, $params);
+        } catch (\Exception $e) {
+            throw CouldNotSendNotification::serviceRespondedWithAnError($baseUrl.' '.$e->getMessage());
+        }
 
         if ($response->failed()) {
             throw CouldNotSendNotification::serviceRespondedWithAnError($baseUrl.' '.$response->status().' '.$response->body());

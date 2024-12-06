@@ -76,7 +76,7 @@ Data stored on Hubspot:
 - Hubspot Contact Id => The Notifiable Model must have **getHubspotContactId(\Illuminate\Notifications\Notification $notification)** function
 - Send at timestamp
 - subject
-- mail text (the html of the email or the toTextMail method of notification) 
+- mail text (the html of the email or the toHubspotTextMail method of notification) 
 
 ### Example
 
@@ -108,7 +108,7 @@ class OrderConfirmation extends Notification
     }
 
     //Optional text method
-    public function toTextMail($notifiable):string
+    public function toHubspotTextMail($notifiable):string
     {
         return 'text of message to put on hubspot';
     }

@@ -8,14 +8,14 @@ use Illuminate\Notifications\Notification;
 
 class TestViewMailNotification extends Notification
 {
-    public function via($notifiable)
+    public function via(TestNotifiable $notifiable)
     {
         return [HubspotEmailChannel::class];
     }
 
-    public function toMail($notifiable)
+    public function toMail(TestNotifiable $notifiable)
     {
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject('Subject')
             ->from('from3@email.com', 'From3')
             ->view('hubspot-engagement::email_test_view', [])
