@@ -115,6 +115,24 @@ class OrderConfirmation extends Notification
     ...
 }
 ```
+#### Send text version of html email
+An example of use of `toHubspotTextMail` method is to send the text version of the email.
+
+```php
+
+use Soundasleep\Html2Text;
+class OrderConfirmation extends Notification
+{
+    ...
+
+    public function toHubspotTextMail(mixed $notifiable): string
+    {
+        return Html2Text::convert($this->toMail($notifiable)->render());
+    }
+}
+
+```
+
 
 #### Model example
 ```php
