@@ -129,6 +129,21 @@ class ChannelFeatureTest extends TestCase
         Http::fake(['*' => Http::response('Error', 404)]);
     }
 
+    private function invalidAssociationResponse(string $objectType, string $objectId)
+    {
+        return Http::response(json_encode([
+            'status' => 'error',
+            'message' => 'One or more associations are invalid',
+            'correlationId' => '01a0c99e-472a-73e4-b997-3a91989f63c9',
+            'context' => [
+                'INVALID_OBJECT_IDS' => [$objectType.'='.$objectId.' is not valid'],
+                'objectId' => [$objectId],
+                'objectType' => [$objectType],
+            ],
+            'category' => 'VALIDATION_ERROR',
+        ]), 400, ['Content-Type: application/json']);
+    }
+
     /** @test */
     public function it_throws_an_exception_when_it_is_not_configured()
     {
@@ -145,6 +160,61 @@ class ChannelFeatureTest extends TestCase
         $this->expectException(CouldNotSendNotification::class);
 
         $this->channel->send(new TestNotifiable, new TestLineMailNotification);
+    }
+
+    /** @test */
+    public function it_does_not_leak_the_api_key_in_the_exception_message()
+    {
+        $this->mockHubspotErrorRequest();
+
+        try {
+            $this->channel->send(new TestNotifiable, new TestLineMailNotification);
+            $this->fail('Expected CouldNotSendNotification to be thrown.');
+        } catch (CouldNotSendNotification $e) {
+            $this->assertStringNotContainsString(config('hubspot.api_key'), $e->getMessage());
+            $this->assertStringNotContainsString('hapikey', $e->getMessage());
+        }
+    }
+
+    /** @test */
+    public function it_exposes_the_hubspot_validation_context_when_the_contact_id_is_invalid()
+    {
+        $this->configSetUp();
+        Http::fake([
+            HubspotEmailChannel::HUBSPOT_URL_V4.'*' => $this->invalidAssociationResponse('CONTACT', '838442890479'),
+            '*' => Http::response(['id' => '18339394130'], 201, ['Content-Type: application/json']),
+        ]);
+
+        try {
+            $this->channel->send(new TestNotifiable, new TestLineMailNotification);
+            $this->fail('Expected CouldNotSendNotification to be thrown.');
+        } catch (CouldNotSendNotification $e) {
+            $this->assertTrue($e->hasInvalidObjectIds());
+            $this->assertSame(['CONTACT=838442890479 is not valid'], $e->invalidObjectIds());
+            $this->assertSame('VALIDATION_ERROR', $e->category());
+            $this->assertSame('01a0c99e-472a-73e4-b997-3a91989f63c9', $e->correlationId());
+        }
+    }
+
+    /** @test */
+    public function it_still_sends_the_notification_when_only_the_company_association_is_invalid()
+    {
+        $this->configSetUp();
+        $this->app['config']->set('hubspot.company_email_associations', true);
+        Http::fake([
+            HubspotEmailChannel::HUBSPOT_URL_V4.'company/*' => $this->invalidAssociationResponse('COMPANY', '9876'),
+            HubspotEmailChannel::HUBSPOT_URL_V4.'*' => Http::response(['status' => 'COMPLETE'], 200, ['Content-Type: application/json']),
+            HubspotEmailChannel::HUBSPOT_URL_V3.'contacts/*' => Http::response(
+                ['id' => '987654321', 'properties' => ['associatedcompanyid' => '9876']],
+                200,
+                ['Content-Type: application/json']
+            ),
+            '*' => Http::response(['id' => '18339394130'], 201, ['Content-Type: application/json']),
+        ]);
+
+        $channelResponse = $this->channel->send(new TestNotifiable, new TestLineMailNotification);
+
+        $this->assertSame('18339394130', $channelResponse['id']);
     }
 
     /** @test */

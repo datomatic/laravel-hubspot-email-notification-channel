@@ -4,6 +4,7 @@ namespace Datomatic\LaravelHubspotEmailNotificationChannel;
 
 use Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\CouldNotSendNotification;
 use Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\InvalidConfiguration;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
 
@@ -83,7 +84,15 @@ class HubspotEmailChannel
                 $hubspotCompanyId = $contactResp['properties']['associatedcompanyid'] ?? null;
 
                 if ($hubspotCompanyId) {
-                    $this->associate('company', $hubspotCompanyId, $hubspotEmail['id'], self::ASSOCIATION_COMPANY_TO_EMAIL);
+                    try {
+                        $this->associate('company', $hubspotCompanyId, $hubspotEmail['id'], self::ASSOCIATION_COMPANY_TO_EMAIL);
+                    } catch (CouldNotSendNotification $e) {
+                        // a stale associatedcompanyid is not worth failing the notification for:
+                        // the email is already stored and associated to the contact
+                        if (! $e->hasInvalidObjectIds()) {
+                            throw $e;
+                        }
+                    }
                 }
             }
         }
@@ -114,13 +123,16 @@ class HubspotEmailChannel
             throw InvalidConfiguration::configurationNotSet();
         }
 
+        // $baseUrl stays credential-free: it is the only thing quoted back in exception messages
+        $url = $baseUrl;
+
         $apiKey = config('hubspot.api_key');
         if ($apiKey) {
             // association calls send a JSON list body, so the key can only travel in the query string
             if ($method === 'get') {
                 $params['hapikey'] = $apiKey;
             } else {
-                $baseUrl .= (strpos($baseUrl, '?') === false ? '?' : '&').'hapikey='.urlencode($apiKey);
+                $url .= (strpos($url, '?') === false ? '?' : '&').'hapikey='.urlencode($apiKey);
             }
         }
 
@@ -134,13 +146,20 @@ class HubspotEmailChannel
         }
 
         try {
-            $response = $http->$method($baseUrl, $params);
+            $response = $http->$method($url, $params);
+        } catch (RequestException $e) {
+            // retry() makes the client throw on a failed response, and RequestException
+            // truncates the body at 120 chars, so read the error off the response itself
+            $response = $e->response;
         } catch (\Exception $e) {
             throw CouldNotSendNotification::serviceRespondedWithAnError($baseUrl.' '.$e->getMessage());
         }
 
         if ($response->failed()) {
-            throw CouldNotSendNotification::serviceRespondedWithAnError($baseUrl.' '.$response->status().' '.$response->body());
+            throw CouldNotSendNotification::serviceRespondedWithAnError(
+                $baseUrl.' '.$response->status().' '.$response->body(),
+                is_array($response->json()) ? $response->json() : []
+            );
         }
 
         return $response->json() ?? [];
