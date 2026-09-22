@@ -94,7 +94,7 @@ class HubspotEmailChannel
     /**
      * @throws CouldNotSendNotification|InvalidConfiguration
      */
-    protected function associate(string $fromObjectType, $fromObjectId, $emailId, int $associationTypeId): array
+    protected function associate(string $fromObjectType, int|string $fromObjectId, int|string $emailId, int $associationTypeId): array
     {
         return $this->callApi(
             self::HUBSPOT_URL_V4.$fromObjectType.'/'.$fromObjectId.'/associations/email/'.$emailId,
