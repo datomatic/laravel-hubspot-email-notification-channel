@@ -2,6 +2,8 @@
 
 namespace Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions;
 
+use Datomatic\LaravelHubspotEmailNotificationChannel\Contracts\HasHubspotContact;
+
 class CouldNotSendNotification extends BaseException
 {
     /** @var array<string, mixed> */
@@ -10,12 +12,19 @@ class CouldNotSendNotification extends BaseException
     /**
      * @param  array<string, mixed>  $payload  decoded HubSpot error body, when the response carried one
      */
-    public static function serviceRespondedWithAnError(string $response, array $payload = []): self
+    public static function serviceRespondedWithAnError(string $response, array $payload = []): static
     {
         $exception = new static($response);
         $exception->payload = $payload;
 
         return $exception;
+    }
+
+    public static function notifiableIsNotAHubspotContact(string $notifiable): self
+    {
+        return new CouldNotSendNotification(
+            $notifiable.' must implement '.HasHubspotContact::class.' to be notified through the Hubspot channel.'
+        );
     }
 
     /** @return array<string, mixed> */

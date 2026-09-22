@@ -6,7 +6,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/datomatic/laravel-hubspot-email-notification-channel.svg?style=flat-square)](https://packagist.org/packages/datomatic/laravel-hubspot-email-notification-channel)
 
 This package makes it easy to log notifications
-to [Hubspot Email Engagement V3](https://developers.hubspot.com/docs/api/crm/email) with Laravel >= 8.x
+to [Hubspot Email Engagement V3](https://developers.hubspot.com/docs/api/crm/email) with Laravel >= 12.x
 
 ## Contents
 
@@ -19,6 +19,7 @@ to [Hubspot Email Engagement V3](https://developers.hubspot.com/docs/api/crm/ema
     - [Example](#example)
       - [Notification example](#notification-example)
       - [Model example](#model-example)
+      - [Handling a stale contact id](#handling-a-stale-contact-id)
   - [Changelog](#changelog)
   - [Testing](#testing)
   - [Security](#security)
@@ -36,19 +37,16 @@ composer require datomatic/laravel-hubspot-email-notification-channel
 
 ### Setting up the HubspotEmail service
 
-Generate an [API Key](https://knowledge.hubspot.com/integrations/how-do-i-get-my-hubspot-api-key)
-or a [Private App](https://developers.hubspot.com/docs/api/private-apps) from Hubspot.
-**Important!** From November 30th 2022 Hubspot will require you to use only private apps. If you have both API Key and Private App configured, to switch using only Private App just remove `HUBSPOT_API_KEY` from your .env file.
+Create a [Private App](https://developers.hubspot.com/docs/api/private-apps) in Hubspot and copy its access token.
+Hubspot API keys were sunset on November 30th 2022 and are no longer accepted.
 
 Configure your Hubspot API on .env
 ```dotenv
-HUBSPOT_API_KEY=XXXXXXXX 
-# or
 HUBSPOT_ACCESS_TOKEN=XXXXXXXX
-HUBSPOT_OWNER_ID=XXX //an Hubspot owner id to save as email creator
+HUBSPOT_OWNER_ID=XXX # an Hubspot owner id to save as email creator
 ```
 
-To publish the config file to config/newsletter.php run:
+To publish the config file to config/hubspot.php run:
 ```bash
 php artisan vendor:publish --provider="Datomatic\LaravelHubspotEmailNotificationChannel\HubspotEmailServiceProvider"
 ```
@@ -58,11 +56,19 @@ This will publish a file hubspot.php in your config directory with the following
 // config/hubspot.php
 
 return [
-    'api_key' => env('HUBSPOT_API_KEY'),
-    'access_token' => env('HUBSPOT_API_KEY'),
-    'hubspot_owner_id' => env('HUBSPOT_OWNER_ID',null)
+    'access_token' => env('HUBSPOT_ACCESS_TOKEN'),
+    'hubspot_owner_id' => env('HUBSPOT_OWNER_ID'),
+    'company_email_associations' => true,
+    'retry' => [
+        'times' => env('HUBSPOT_RETRY_TIMES', 3),
+        'sleep_milliseconds' => env('HUBSPOT_RETRY_SLEEP_MILLISECONDS', 11 * 1000),
+    ],
 ];
 ```
+
+Hubspot enforces its rate limit over a ten second window, so the default retry waits eleven seconds
+between attempts. Three attempts means a failing call can block for over twenty seconds, which matters
+inside a queued job: lower `HUBSPOT_RETRY_TIMES` to `1` to disable retrying altogether.
 
 ## Usage
 
@@ -73,7 +79,7 @@ Your Notification class must have toMail method.
 The package accepts: MailMessage lines notifications, MailMessage view notifications and Markdown mail notifications.
 
 Data stored on Hubspot:
-- Hubspot Contact Id => The Notifiable Model must have **getHubspotContactId(\Illuminate\Notifications\Notification $notification)** function
+- Hubspot Contact Id => The Notifiable Model must implement **Datomatic\LaravelHubspotEmailNotificationChannel\Contracts\HasHubspotContact**
 - Send at timestamp
 - subject
 - mail text (the html of the email or the toHubspotTextMail method of notification) 
@@ -138,14 +144,44 @@ class OrderConfirmation extends Notification
 ```php
 namespace App\Models;
 
-class User extends Authenticatable{
+use Datomatic\LaravelHubspotEmailNotificationChannel\Contracts\HasHubspotContact;
+use Illuminate\Notifications\Notification;
+
+class User extends Authenticatable implements HasHubspotContact
+{
     ...
-    public function getHubspotContactId(\Illuminate\Notifications\Notification $notification){
+    public function getHubspotContactId(Notification $notification): int|string|null
+    {
         return $this->hubspot_contact_id;
     }
     ...
 }
 ```
+
+Returning `null` skips logging the notification to Hubspot.
+
+#### Handling a stale contact id
+
+Since the 2026-09 write validation, Hubspot rejects an association to a contact id it cannot resolve
+instead of silently accepting it. That surfaces as a `HubspotObjectNotFound`, which carries the
+decoded error body:
+
+```php
+use Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\HubspotObjectNotFound;
+
+try {
+    $user->notify(new OrderConfirmation($order));
+} catch (HubspotObjectNotFound $e) {
+    // ["CONTACT=838442890479 is not valid"]
+    logger()->warning('Stale Hubspot contact', $e->invalidObjectIds());
+
+    $user->update(['hubspot_contact_id' => null]);
+}
+```
+
+`HubspotObjectNotFound` extends `CouldNotSendNotification` and also exposes `payload()`, `category()`
+and `correlationId()`. Note that the email object is created before the association is attempted, so a
+rejected association leaves an orphaned email in Hubspot.
 
 #### Dynamic Contact Owner
 ```php

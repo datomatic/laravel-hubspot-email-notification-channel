@@ -2,7 +2,9 @@
 
 namespace Datomatic\LaravelHubspotEmailNotificationChannel\Test;
 
+use Datomatic\LaravelHubspotEmailNotificationChannel\Contracts\HasHubspotContact;
 use Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\CouldNotSendNotification;
+use Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\HubspotObjectNotFound;
 use Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\InvalidConfiguration;
 use Datomatic\LaravelHubspotEmailNotificationChannel\HubspotEmailChannel;
 use Illuminate\Support\Facades\Config;
@@ -37,8 +39,11 @@ class ChannelFeatureTest extends TestCase
     {
         $this->app['config']->set('mail.from.address', 'from@email.com');
         $this->app['config']->set('mail.from.name', 'from_name');
-        $this->app['config']->set('hubspot.api_key', 'testApiKey');
+        $this->app['config']->set('hubspot.access_token', 'testAccessToken');
         $this->app['config']->set('hubspot.hubspot_owner_id', '2342345234434');
+        // no retry by default: retrying costs a real eleven second sleep per attempt
+        $this->app['config']->set('hubspot.retry.times', 1);
+        $this->app['config']->set('hubspot.retry.sleep_milliseconds', 0);
     }
 
     private function mockHubspotResponse()
@@ -164,7 +169,7 @@ class ChannelFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_does_not_leak_the_api_key_in_the_exception_message()
+    public function it_does_not_leak_the_access_token_in_the_exception_message()
     {
         $this->mockHubspotErrorRequest();
 
@@ -172,8 +177,38 @@ class ChannelFeatureTest extends TestCase
             $this->channel->send(new TestNotifiable, new TestLineMailNotification);
             $this->fail('Expected CouldNotSendNotification to be thrown.');
         } catch (CouldNotSendNotification $e) {
-            $this->assertStringNotContainsString(config('hubspot.api_key'), $e->getMessage());
+            $this->assertStringNotContainsString(config('hubspot.access_token'), $e->getMessage());
             $this->assertStringNotContainsString('hapikey', $e->getMessage());
+        }
+    }
+
+    #[Test]
+    public function it_throws_when_the_notifiable_does_not_implement_the_contract()
+    {
+        $this->mockHubspotResponse();
+
+        $this->expectException(CouldNotSendNotification::class);
+        $this->expectExceptionMessage(HasHubspotContact::class);
+
+        $this->channel->send(new TestNotifiableWithoutContract, new TestLineMailNotification);
+    }
+
+    #[Test]
+    public function it_keeps_the_error_body_when_the_request_is_retried()
+    {
+        $this->configSetUp();
+        $this->app['config']->set('hubspot.retry.times', 2);
+        Http::fake([
+            HubspotEmailChannel::HUBSPOT_URL_V4.'*' => $this->invalidAssociationResponse('CONTACT', '838442890479'),
+            '*' => Http::response(['id' => '18339394130'], 201, ['Content-Type: application/json']),
+        ]);
+
+        try {
+            $this->channel->send(new TestNotifiable, new TestLineMailNotification);
+            $this->fail('Expected HubspotObjectNotFound to be thrown.');
+        } catch (HubspotObjectNotFound $e) {
+            $this->assertStringNotContainsString('(truncated...)', $e->getMessage());
+            $this->assertSame(['CONTACT=838442890479 is not valid'], $e->invalidObjectIds());
         }
     }
 
@@ -188,8 +223,8 @@ class ChannelFeatureTest extends TestCase
 
         try {
             $this->channel->send(new TestNotifiable, new TestLineMailNotification);
-            $this->fail('Expected CouldNotSendNotification to be thrown.');
-        } catch (CouldNotSendNotification $e) {
+            $this->fail('Expected HubspotObjectNotFound to be thrown.');
+        } catch (HubspotObjectNotFound $e) {
             $this->assertTrue($e->hasInvalidObjectIds());
             $this->assertSame(['CONTACT=838442890479 is not valid'], $e->invalidObjectIds());
             $this->assertSame('VALIDATION_ERROR', $e->category());

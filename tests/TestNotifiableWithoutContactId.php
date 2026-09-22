@@ -2,10 +2,11 @@
 
 namespace Datomatic\LaravelHubspotEmailNotificationChannel\Test;
 
+use Datomatic\LaravelHubspotEmailNotificationChannel\Contracts\HasHubspotContact;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
 
-class TestNotifiableWithoutContactId
+class TestNotifiableWithoutContactId implements HasHubspotContact
 {
     use Notifiable;
 
@@ -17,7 +18,7 @@ class TestNotifiableWithoutContactId
         return 'email@email.com';
     }
 
-    public function getHubspotContactId()
+    public function getHubspotContactId(Notification $notification): int|string|null
     {
         return null;
     }

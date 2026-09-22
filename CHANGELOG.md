@@ -2,6 +2,46 @@
 
 All notable changes to `hubspot-engagement` will be documented in this file
 
+## 2.0.0 - 2026-09-22
+
+Removes the Hubspot API key support that Hubspot itself sunset in 2022, and formalises the
+notifiable contract. Upgrading means switching to a private app access token and implementing an
+interface on your notifiable.
+
+### Removed
+
+- **Breaking:** `hubspot.api_key` and the `hapikey` query-string authentication. Hubspot stopped
+  accepting API keys on 2022-11-30, but the package still preferred them over the access token when
+  both were configured, which sent every call down a dead path — and that path was the one leaking
+  the key into logs in 1.6.0. Set `HUBSPOT_ACCESS_TOKEN` from a private app instead.
+- **Breaking:** `HubspotEmailMessage`, an empty stub referenced nowhere.
+
+### Added
+
+- **Breaking:** `Contracts\HasHubspotContact`, which notifiables must now implement. `getHubspotContactId()`
+  was duck-typed, so a notifiable missing it died with `Call to undefined method`; the channel now
+  throws `CouldNotSendNotification::notifiableIsNotAHubspotContact()`. The interface also pins the
+  signature, which the README and the package's own test double disagreed on.
+- `Exceptions\HubspotObjectNotFound`, thrown when Hubspot rejects an association to an object id it
+  cannot resolve. Extends `CouldNotSendNotification`, so existing catches keep working.
+- Configurable retry through `hubspot.retry.times` and `hubspot.retry.sleep_milliseconds`
+  (`HUBSPOT_RETRY_TIMES`, `HUBSPOT_RETRY_SLEEP_MILLISECONDS`). The eleven second sleep between
+  attempts was hardcoded, so a failing call blocked a queued job for over twenty seconds with no way
+  to opt out.
+
+### Changed
+
+- **Breaking:** requires PHP ^8.2 and Laravel ^12.0|^13.0. The package advertised PHP 8.0 and Laravel
+  8 through 13, but every Laravel release below 12 is now blocked by security advisories and could
+  not be installed or tested at all.
+- `README.md` documented `'access_token' => env('HUBSPOT_API_KEY')`, wiring the access token to the
+  wrong environment variable.
+
+### Removed from the repository
+
+- `.travis.yml`, `.php_cs.dist.php`, `.php-cs-fixer.cache`, `phpunit.xml.dist.bak`, `coverage.clover`
+  and `coverage.xml` — superseded by GitHub Actions and Pint, or stale build output.
+
 ## 1.6.1 - 2026-09-22
 
 Follow-up to 1.6.0. Fixes a credential leak and makes HubSpot's write-validation errors usable.
