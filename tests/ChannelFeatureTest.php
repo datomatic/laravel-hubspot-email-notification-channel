@@ -12,7 +12,7 @@ use Orchestra\Testbench\TestCase;
 
 class ChannelFeatureTest extends TestCase
 {
-    /** @var \Datomatic\LaravelHubspotEmailNotificationChannel\HubspotEmailChannel */
+    /** @var HubspotEmailChannel */
     protected $channel;
 
     protected function getPackageProviders($app)
@@ -44,11 +44,12 @@ class ChannelFeatureTest extends TestCase
     {
         $this->configSetUp();
         Http::fake(function ($request) {
-            if (strpos($request->url(), 'associations/default/email') !== false
+            if (strpos($request->url(), '/associations/email/') !== false
                 && strpos($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4) !== false
             ) {
-                $path = trim($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4.'contact/');
-                [$hubspotContactId, $hubspotEmailId] = explode('/associations/default/email/', $path, 2);
+                $path = parse_url($request->url(), PHP_URL_PATH);
+                preg_match('#/objects/\w+/(\d+)/associations/email/(\d+)#', $path, $matches);
+                [, $hubspotContactId, $hubspotEmailId] = $matches;
 
                 return Http::response(json_encode([
                     'status' => 'COMPLETE',
@@ -109,6 +110,13 @@ class ChannelFeatureTest extends TestCase
     "createdAt": "'.round(microtime(true) * 1000).'",
     "updatedAt": "'.round(microtime(true) * 1000).'",
     "archived": false}', 201, ['Content-Type: application/json']);
+            } elseif (strpos($request->url(), HubspotEmailChannel::HUBSPOT_URL_V3.'contacts/') === 0) {
+                return Http::response(json_encode([
+                    'id' => '987654321',
+                    'properties' => [
+                        'associatedcompanyid' => '9876',
+                    ],
+                ]), 200, ['Content-Type: application/json']);
             } else {
                 return Http::response('{}', 200, ['Content-Type: application/json']);
             }
@@ -191,6 +199,45 @@ class ChannelFeatureTest extends TestCase
         $htmlString = $channelResponse['properties']['hs_email_text'];
         $this->assertStringContainsString('Markdown Title Content', $htmlString);
         $this->assertStringContainsString('Markdown body content', $htmlString);
+    }
+
+    /** @test */
+    public function it_associates_the_email_to_the_contact_with_a_hubspot_defined_association_spec()
+    {
+        $this->mockHubspotResponse();
+
+        $this->channel->send(new TestNotifiable, new TestLineMailNotification);
+
+        Http::assertSent(function ($request) {
+            return $request->method() === 'PUT'
+                && strpos($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4.'contact/987654321/associations/email/18339394130') === 0
+                && $request->data() === [
+                    [
+                        'associationCategory' => 'HUBSPOT_DEFINED',
+                        'associationTypeId' => HubspotEmailChannel::ASSOCIATION_CONTACT_TO_EMAIL,
+                    ],
+                ];
+        });
+    }
+
+    /** @test */
+    public function it_associates_the_email_to_the_company_when_enabled()
+    {
+        $this->mockHubspotResponse();
+        $this->app['config']->set('hubspot.company_email_associations', true);
+
+        $this->channel->send(new TestNotifiable, new TestLineMailNotification);
+
+        Http::assertSent(function ($request) {
+            return $request->method() === 'PUT'
+                && strpos($request->url(), HubspotEmailChannel::HUBSPOT_URL_V4.'company/9876/associations/email/18339394130') === 0
+                && $request->data() === [
+                    [
+                        'associationCategory' => 'HUBSPOT_DEFINED',
+                        'associationTypeId' => HubspotEmailChannel::ASSOCIATION_COMPANY_TO_EMAIL,
+                    ],
+                ];
+        });
     }
 
     /** @test */

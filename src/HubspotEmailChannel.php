@@ -16,12 +16,16 @@ class HubspotEmailChannel
     // Standard scope(s)	sales-email-read
     // Granular scope(s)	crm.objects.contacts.write
 
-    // endpoint: PUT /crm/v4/objects/{fromObjectType}/{fromObjectId}/associations/default/{toObjectType}/{toObjectId};
+    // endpoint: PUT /crm/v4/objects/{fromObjectType}/{fromObjectId}/associations/{toObjectType}/{toObjectId};
     // api ref: https://developers.hubspot.com/docs/api/crm/associations
 
     public const HUBSPOT_URL_V3 = 'https://api.hubapi.com/crm/v3/objects/';
 
     public const HUBSPOT_URL_V4 = 'https://api.hubapi.com/crm/v4/objects/';
+
+    public const ASSOCIATION_CONTACT_TO_EMAIL = 197;
+
+    public const ASSOCIATION_COMPANY_TO_EMAIL = 185;
 
     /**
      * HubspotEngagementChannel constructor.
@@ -33,7 +37,7 @@ class HubspotEmailChannel
      *
      * @param  mixed  $notifiable
      *
-     * @throws \Datomatic\LaravelHubspotEmailNotificationChannel\Exceptions\CouldNotSendNotification|InvalidConfiguration
+     * @throws CouldNotSendNotification|InvalidConfiguration
      */
     public function send($notifiable, Notification $notification): ?array
     {
@@ -67,11 +71,7 @@ class HubspotEmailChannel
 
         if (! empty($hubspotEmail['id'])) {
 
-            $this->callApi(
-                self::HUBSPOT_URL_V4.'contact/'.$hubspotContactId.'/associations/default/email/'.$hubspotEmail['id'],
-                'put',
-                ['associationTypeId' => 197]
-            );
+            $this->associate('contact', $hubspotContactId, $hubspotEmail['id'], self::ASSOCIATION_CONTACT_TO_EMAIL);
 
             if (config('hubspot.company_email_associations')) {
                 $contactResp = $this->callApi(
@@ -83,16 +83,29 @@ class HubspotEmailChannel
                 $hubspotCompanyId = $contactResp['properties']['associatedcompanyid'] ?? null;
 
                 if ($hubspotCompanyId) {
-                    $this->callApi(
-                        self::HUBSPOT_URL_V4.'company/'.$hubspotCompanyId.'/associations/default/email/'.$hubspotEmail['id'],
-                        'put',
-                        ['associationTypeId' => 185]
-                    );
+                    $this->associate('company', $hubspotCompanyId, $hubspotEmail['id'], self::ASSOCIATION_COMPANY_TO_EMAIL);
                 }
             }
         }
 
         return $hubspotEmail;
+    }
+
+    /**
+     * @throws CouldNotSendNotification|InvalidConfiguration
+     */
+    protected function associate(string $fromObjectType, $fromObjectId, $emailId, int $associationTypeId): array
+    {
+        return $this->callApi(
+            self::HUBSPOT_URL_V4.$fromObjectType.'/'.$fromObjectId.'/associations/email/'.$emailId,
+            'put',
+            [
+                [
+                    'associationCategory' => 'HUBSPOT_DEFINED',
+                    'associationTypeId' => $associationTypeId,
+                ],
+            ]
+        );
     }
 
     protected function callApi(string $baseUrl, string $method, array $params = []): array
@@ -103,7 +116,12 @@ class HubspotEmailChannel
 
         $apiKey = config('hubspot.api_key');
         if ($apiKey) {
-            $params['hapikey'] = $apiKey;
+            // association calls send a JSON list body, so the key can only travel in the query string
+            if ($method === 'get') {
+                $params['hapikey'] = $apiKey;
+            } else {
+                $baseUrl .= (strpos($baseUrl, '?') === false ? '?' : '&').'hapikey='.urlencode($apiKey);
+            }
         }
 
         $http = Http::acceptJson()->retry(3, 11 * 1000);
@@ -125,6 +143,6 @@ class HubspotEmailChannel
             throw CouldNotSendNotification::serviceRespondedWithAnError($baseUrl.' '.$response->status().' '.$response->body());
         }
 
-        return $response->json();
+        return $response->json() ?? [];
     }
 }
