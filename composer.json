@@ -17,11 +17,11 @@
         "guzzlehttp/guzzle": "^7.4"
     },
     "require-dev": {
-        "larastan/larastan": "^1.0|^2.0",
+        "larastan/larastan": "^3.0",
         "laravel/pint": "^1.18",
-        "mockery/mockery": "^1.4",
-        "orchestra/testbench": "^6.13|^7.0|^8.0|^9.0|^10.0",
-        "phpunit/phpunit": "^9.0|^10.0|^11.0|^12.0"
+        "mockery/mockery": "^1.6",
+        "orchestra/testbench": "^10.0|^11.0",
+        "phpunit/phpunit": "^11.0|^12.0|^13.0"
     },
     "autoload": {
         "psr-4": {

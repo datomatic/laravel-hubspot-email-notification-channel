@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Mockery;
 use Orchestra\Testbench\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ChannelFeatureTest extends TestCase
 {
@@ -144,7 +145,7 @@ class ChannelFeatureTest extends TestCase
         ]), 400, ['Content-Type: application/json']);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_an_exception_when_it_is_not_configured()
     {
         Config::set('hubspot', null);
@@ -153,7 +154,7 @@ class ChannelFeatureTest extends TestCase
         (new TestNotifiable)->notify(new TestLineMailNotification);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_an_exception_when_it_could_not_send_the_notification()
     {
         $this->mockHubspotErrorRequest();
@@ -162,7 +163,7 @@ class ChannelFeatureTest extends TestCase
         $this->channel->send(new TestNotifiable, new TestLineMailNotification);
     }
 
-    /** @test */
+    #[Test]
     public function it_does_not_leak_the_api_key_in_the_exception_message()
     {
         $this->mockHubspotErrorRequest();
@@ -176,7 +177,7 @@ class ChannelFeatureTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_exposes_the_hubspot_validation_context_when_the_contact_id_is_invalid()
     {
         $this->configSetUp();
@@ -196,7 +197,7 @@ class ChannelFeatureTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_still_sends_the_notification_when_only_the_company_association_is_invalid()
     {
         $this->configSetUp();
@@ -217,7 +218,7 @@ class ChannelFeatureTest extends TestCase
         $this->assertSame('18339394130', $channelResponse['id']);
     }
 
-    /** @test */
+    #[Test]
     public function it_not_send_a_notification_to_notifiable_without_contact_id()
     {
         $this->mockHubspotResponse();
@@ -226,7 +227,7 @@ class ChannelFeatureTest extends TestCase
         $this->assertNull($channelResponse);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_send_a_notification_with_line_email()
     {
         $this->mockHubspotResponse();
@@ -246,7 +247,7 @@ class ChannelFeatureTest extends TestCase
         $this->assertEquals($channelResponse['properties']['hs_email_subject'], 'Subject');
     }
 
-    /** @test */
+    #[Test]
     public function it_can_send_a_notification_with_view_email()
     {
         $this->mockHubspotResponse();
@@ -259,7 +260,7 @@ class ChannelFeatureTest extends TestCase
         $this->assertStringContainsString('Test View Content', $channelResponse['properties']['hs_email_text']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_send_a_notification_with_markdown_email()
     {
         $this->mockHubspotResponse();
@@ -271,7 +272,7 @@ class ChannelFeatureTest extends TestCase
         $this->assertStringContainsString('Markdown body content', $htmlString);
     }
 
-    /** @test */
+    #[Test]
     public function it_associates_the_email_to_the_contact_with_a_hubspot_defined_association_spec()
     {
         $this->mockHubspotResponse();
@@ -290,7 +291,7 @@ class ChannelFeatureTest extends TestCase
         });
     }
 
-    /** @test */
+    #[Test]
     public function it_associates_the_email_to_the_company_when_enabled()
     {
         $this->mockHubspotResponse();
@@ -310,7 +311,7 @@ class ChannelFeatureTest extends TestCase
         });
     }
 
-    /** @test */
+    #[Test]
     public function it_can_send_a_notification_with_to_hubspot_text_mail_method()
     {
         $this->mockHubspotResponse();
