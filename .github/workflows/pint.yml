@@ -1,9 +1,9 @@
-name: PHP Linting
+name: Pint
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  phplint:
+  pint:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,4 +18,4 @@ jobs:
           coverage: none
 
       - name: Check code style
-        run: pint --test --config pint.json
+        run: pint --test
