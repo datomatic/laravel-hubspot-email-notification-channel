@@ -1,9 +1,9 @@
 # Hubspot Email Notifications Channel for Laravel
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/datomatic/laravel-hubspot-email-notification-channel.svg?style=flat-square)](https://packagist.org/packages/datomatic/laravel-hubspot-email-notification-channel)
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Quality Score](https://img.shields.io/scrutinizer/g/datomatic/laravel-hubspot-email-notification-channel.svg?style=flat-square)](https://scrutinizer-ci.com/g/datomatic/laravel-hubspot-email-notification-channel)
-[![Total Downloads](https://img.shields.io/packagist/dt/datomatic/laravel-hubspot-email-notification-channel.svg?style=flat-square)](https://packagist.org/packages/datomatic/laravel-hubspot-email-notification-channel)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/datomatic/laravel-hubspot-email-notification-channel.svg?style=for-the-badge)](https://packagist.org/packages/datomatic/laravel-hubspot-email-notification-channel)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](LICENSE.md)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/datomatic/laravel-hubspot-email-notification-channel/run-tests.yml?branch=main&label=tests&color=5FE8B3&style=for-the-badge)](https://github.com/datomatic/laravel-hubspot-email-notification-channel/actions/workflows/run-tests.yml)
+[![Total Downloads](https://img.shields.io/packagist/dt/datomatic/laravel-hubspot-email-notification-channel.svg?style=for-the-badge)](https://packagist.org/packages/datomatic/laravel-hubspot-email-notification-channel)
 
 This package makes it easy to log notifications
 to [Hubspot Email Engagement V3](https://developers.hubspot.com/docs/api/crm/email) with Laravel >= 12.x
